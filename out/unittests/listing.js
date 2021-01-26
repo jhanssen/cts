@@ -13,12 +13,6 @@ export const listing = [
   },
   {
     "file": [
-      "async_mutex"
-    ],
-    "description": "Tests for AsyncMutex."
-  },
-  {
-    "file": [
       "basic"
     ],
     "description": "Basic unit tests for test framework."
