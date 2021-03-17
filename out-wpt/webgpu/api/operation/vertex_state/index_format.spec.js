@@ -45,7 +45,7 @@ const { byteLength, bytesPerRow, rowsPerImage } = getTextureCopyLayout(kTextureF
 ]);
 
 class IndexFormatTest extends GPUTest {
-  MakeRenderPipeline(primitiveTopology, indexFormat) {
+  MakeRenderPipeline(topology, stripIndexFormat) {
     const vertexModule = this.device.createShaderModule({
       // TODO?: These positions will create triangles that cut right through pixel centers. If this
       // results in different rasterization results on different hardware, tweak to avoid this.
@@ -83,12 +83,16 @@ class IndexFormatTest extends GPUTest {
 
     return this.device.createRenderPipeline({
       layout: this.device.createPipelineLayout({ bindGroupLayouts: [] }),
-      vertexStage: { module: vertexModule, entryPoint: 'main' },
-      fragmentStage: { module: fragmentModule, entryPoint: 'main' },
-      primitiveTopology,
-      colorStates: [{ format: kTextureFormat }],
-      vertexState: {
-        indexFormat,
+      vertex: { module: vertexModule, entryPoint: 'main' },
+      fragment: {
+        module: fragmentModule,
+        entryPoint: 'main',
+        targets: [{ format: kTextureFormat }],
+      },
+
+      primitive: {
+        topology,
+        stripIndexFormat,
       },
     });
   }
@@ -120,8 +124,8 @@ class IndexFormatTest extends GPUTest {
 
     const colorAttachment = this.device.createTexture({
       format: kTextureFormat,
-      size: { width: kWidth, height: kHeight, depth: 1 },
-      usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT,
+      size: { width: kWidth, height: kHeight, depthOrArrayLayers: 1 },
+      usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT,
     });
 
     const result = this.device.createBuffer({
@@ -146,7 +150,7 @@ class IndexFormatTest extends GPUTest {
       [kWidth, kHeight]
     );
 
-    this.device.defaultQueue.submit([encoder.finish()]);
+    this.device.queue.submit([encoder.finish()]);
 
     return result;
   }

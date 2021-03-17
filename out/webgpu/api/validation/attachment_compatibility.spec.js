@@ -31,7 +31,7 @@ class F extends ValidationTest {
     createTexture({
       size: [1, 1, 1],
       format,
-      usage: GPUTextureUsage.OUTPUT_ATTACHMENT,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
       sampleCount }).
 
     createView();
@@ -107,12 +107,12 @@ class F extends ValidationTest {
   }
 
   createRenderPipeline(
-  colorStates,
-  depthStencilState,
+  targets,
+  depthStencil,
   sampleCount)
   {
     return this.device.createRenderPipeline({
-      vertexStage: {
+      vertex: {
         module: this.device.createShaderModule({
           code: `
             [[builtin(position)]] var<out> position : vec4<f32>;
@@ -123,16 +123,16 @@ class F extends ValidationTest {
 
         entryPoint: 'main' },
 
-      fragmentStage: {
+      fragment: {
         module: this.device.createShaderModule({
           code: '[[stage(fragment)]] fn main() -> void {}' }),
 
-        entryPoint: 'main' },
+        entryPoint: 'main',
+        targets },
 
-      primitiveTopology: 'triangle-list',
-      colorStates,
-      depthStencilState,
-      sampleCount });
+      primitive: { topology: 'triangle-list' },
+      depthStencil,
+      multisample: { count: sampleCount } });
 
   }}
 
@@ -206,8 +206,10 @@ params().
 combine(poptions('passFormat', kDepthStencilAttachmentFormats)).
 combine(poptions('bundleFormat', kDepthStencilAttachmentFormats))).
 
-fn(t => {
+fn(async t => {
   const { passFormat, bundleFormat } = t.params;
+  await t.selectDeviceForTextureFormatOrSkipTestCase([passFormat, bundleFormat]);
+
   const bundleEncoder = t.device.createRenderBundleEncoder({
     colorFormats: ['rgba8unorm'],
     depthStencilFormat: bundleFormat });
@@ -317,8 +319,10 @@ combine(poptions('encoderType', ['render pass', 'render bundle'])).
 combine(poptions('encoderFormat', kDepthStencilAttachmentFormats)).
 combine(poptions('pipelineFormat', kDepthStencilAttachmentFormats))).
 
-fn(t => {
+fn(async t => {
   const { encoderType, encoderFormat, pipelineFormat } = t.params;
+  await t.selectDeviceForTextureFormatOrSkipTestCase([encoderFormat, pipelineFormat]);
+
   const pipeline = t.createRenderPipeline(
   [{ format: 'rgba8unorm' }],
   pipelineFormat !== undefined ? { format: pipelineFormat } : undefined);

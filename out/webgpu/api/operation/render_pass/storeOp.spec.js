@@ -68,8 +68,8 @@ fn(t => {
   const kColorFormat = 'rgba8unorm';
   const colorAttachment = t.device.createTexture({
     format: kColorFormat,
-    size: { width: kWidth, height: kHeight, depth: 1 },
-    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT });
+    size: { width: kWidth, height: kHeight, depthOrArrayLayers: 1 },
+    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
 
 
   const colorAttachmentView = colorAttachment.createView();
@@ -78,8 +78,8 @@ fn(t => {
   const kDepthStencilFormat = 'depth32float';
   const depthStencilAttachment = t.device.createTexture({
     format: kDepthStencilFormat,
-    size: { width: kWidth, height: kHeight, depth: 1 },
-    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT });
+    size: { width: kWidth, height: kHeight, depthOrArrayLayers: 1 },
+    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
 
 
   // Color load operation will clear to {1.0, 1.0, 1.0, 1.0}.
@@ -104,7 +104,7 @@ fn(t => {
 
   pass.endPass();
 
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   // Check that the correct store operation occurred.
   let expectedColorValue = {};
@@ -155,9 +155,9 @@ combine(poptions('arrayLayer', kArrayLayers))).
 fn(t => {
   const colorAttachment = t.device.createTexture({
     format: t.params.colorFormat,
-    size: { width: kWidth, height: kHeight, depth: t.params.arrayLayer + 1 },
+    size: { width: kWidth, height: kHeight, depthOrArrayLayers: t.params.arrayLayer + 1 },
     mipLevelCount: kMipLevelCount,
-    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT });
+    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
 
 
   const colorViewDesc = {
@@ -182,7 +182,7 @@ fn(t => {
 
 
   pass.endPass();
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   // Check that the correct store operation occurred.
   let expectedValue = {};
@@ -218,8 +218,8 @@ fn(t => {
     colorAttachments.push(
     t.device.createTexture({
       format: kColorFormat,
-      size: { width: kWidth, height: kHeight, depth: 1 },
-      usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT }));
+      size: { width: kWidth, height: kHeight, depthOrArrayLayers: 1 },
+      usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT }));
 
 
   }
@@ -241,7 +241,7 @@ fn(t => {
     colorAttachments: renderPassColorAttachmentDescriptors });
 
   pass.endPass();
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   // Check that the correct store operation occurred.
   let expectedValue = {};
@@ -281,9 +281,9 @@ combine(poptions('arrayLayer', kArrayLayers))).
 fn(t => {
   const depthStencilAttachment = t.device.createTexture({
     format: t.params.depthStencilFormat,
-    size: { width: kWidth, height: kHeight, depth: t.params.arrayLayer + 1 },
+    size: { width: kWidth, height: kHeight, depthOrArrayLayers: t.params.arrayLayer + 1 },
     mipLevelCount: kMipLevelCount,
-    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT });
+    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
 
 
   const depthStencilViewDesc = {
@@ -309,7 +309,7 @@ fn(t => {
 
 
   pass.endPass();
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   let expectedValue = {};
   if (t.params.storeOperation === 'clear') {

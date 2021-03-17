@@ -46,12 +46,12 @@ class F extends ValidationTest {
   testViewportCall(
   success,
   v,
-  attachmentSize = { width: 1, height: 1, depth: 1 })
+  attachmentSize = { width: 1, height: 1, depthOrArrayLayers: 1 })
   {
     const attachment = this.device.createTexture({
       format: 'rgba8unorm',
       size: attachmentSize,
-      usage: GPUTextureUsage.OUTPUT_ATTACHMENT });
+      usage: GPUTextureUsage.RENDER_ATTACHMENT });
 
 
     const encoder = this.device.createCommandEncoder();
@@ -74,12 +74,12 @@ class F extends ValidationTest {
   testScissorCall(
   success,
   s,
-  attachmentSize = { width: 1, height: 1, depth: 1 })
+  attachmentSize = { width: 1, height: 1, depthOrArrayLayers: 1 })
   {
     const attachment = this.device.createTexture({
       format: 'rgba8unorm',
       size: attachmentSize,
-      usage: GPUTextureUsage.OUTPUT_ATTACHMENT });
+      usage: GPUTextureUsage.RENDER_ATTACHMENT });
 
 
     const encoder = this.device.createCommandEncoder();
@@ -109,7 +109,7 @@ class F extends ValidationTest {
     const attachment = this.device.createTexture({
       format: 'rgba8unorm',
       size: [1, 1, 1],
-      usage: GPUTextureUsage.OUTPUT_ATTACHMENT });
+      usage: GPUTextureUsage.RENDER_ATTACHMENT });
 
 
     const encoder = this.device.createCommandEncoder();
@@ -189,7 +189,7 @@ fn(t => {
   t.testViewportCall(
   success,
   { x, y, w, h, minDepth: 0, maxDepth: 1 },
-  { width: attachmentWidth, height: attachmentHeight, depth: 1 });
+  { width: attachmentWidth, height: attachmentHeight, depthOrArrayLayers: 1 });
 
 });
 
@@ -279,7 +279,7 @@ fn(t => {
   t.testScissorCall(
   success,
   { x, y, w, h },
-  { width: attachmentWidth, height: attachmentHeight, depth: 1 });
+  { width: attachmentWidth, height: attachmentHeight, depthOrArrayLayers: 1 });
 
 });
 

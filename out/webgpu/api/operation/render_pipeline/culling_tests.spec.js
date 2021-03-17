@@ -61,16 +61,16 @@ fn(t => {
   const format = 'rgba8unorm';
 
   const texture = t.device.createTexture({
-    size: { width: size, height: size, depth: 1 },
+    size: { width: size, height: size, depthOrArrayLayers: 1 },
     format,
-    usage: GPUTextureUsage.OUTPUT_ATTACHMENT | GPUTextureUsage.COPY_SRC });
+    usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
 
 
   const depthTexture = t.params.depthStencilFormat ?
   t.device.createTexture({
-    size: { width: size, height: size, depth: 1 },
+    size: { width: size, height: size, depthOrArrayLayers: 1 },
     format: t.params.depthStencilFormat,
-    usage: GPUTextureUsage.OUTPUT_ATTACHMENT }) :
+    usage: GPUTextureUsage.RENDER_ATTACHMENT }) :
 
   null;
 
@@ -98,7 +98,7 @@ fn(t => {
   // 2. The bottom-right one is clockwise (CW)
   pass.setPipeline(
   t.device.createRenderPipeline({
-    vertexStage: {
+    vertex: {
       module: t.device.createShaderModule({
         code: `
               [[builtin(position)]] var<out> Position : vec4<f32>;
@@ -118,7 +118,7 @@ fn(t => {
 
       entryPoint: 'main' },
 
-    fragmentStage: {
+    fragment: {
       module: t.device.createShaderModule({
         code: `
               [[location(0)]] var<out> fragColor : vec4<f32>;
@@ -133,15 +133,15 @@ fn(t => {
                 return;
               }` }),
 
-      entryPoint: 'main' },
+      entryPoint: 'main',
+      targets: [{ format }] },
 
-    primitiveTopology: t.params.primitiveTopology,
-    rasterizationState: {
+    primitive: {
+      topology: t.params.primitiveTopology,
       frontFace: t.params.frontFace,
       cullMode: t.params.cullMode },
 
-    colorStates: [{ format }],
-    depthStencilState: depthTexture ?
+    depthStencil: depthTexture ?
     { format: t.params.depthStencilFormat } :
     undefined }));
 
@@ -150,7 +150,7 @@ fn(t => {
   pass.draw(6, 1, 0, 0);
   pass.endPass();
 
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   // front facing color is green, non front facing is red, background is blue
   const kCCWTriangleTopLeftColor = faceColor('ccw', t.params.frontFace, t.params.cullMode);

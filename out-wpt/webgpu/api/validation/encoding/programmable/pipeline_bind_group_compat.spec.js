@@ -27,7 +27,7 @@ class F extends ValidationTest {
 
   createRenderPipeline() {
     const pipeline = this.device.createRenderPipeline({
-      vertexStage: {
+      vertex: {
         module: this.device.createShaderModule({
           code: `
             [[block]] struct VertexUniforms {
@@ -51,7 +51,7 @@ class F extends ValidationTest {
         entryPoint: 'main',
       },
 
-      fragmentStage: {
+      fragment: {
         module: this.device.createShaderModule({
           code: `
             [[block]] struct FragmentUniforms {
@@ -67,10 +67,10 @@ class F extends ValidationTest {
         }),
 
         entryPoint: 'main',
+        targets: [{ format: 'rgba8unorm' }],
       },
 
-      primitiveTopology: 'triangle-list',
-      colorStates: [{ format: 'rgba8unorm' }],
+      primitive: { topology: 'triangle-list' },
     });
 
     return pipeline;
@@ -79,8 +79,8 @@ class F extends ValidationTest {
   beginRenderPass(commandEncoder) {
     const attachmentTexture = this.device.createTexture({
       format: 'rgba8unorm',
-      size: { width: 16, height: 16, depth: 1 },
-      usage: GPUTextureUsage.OUTPUT_ATTACHMENT,
+      size: { width: 16, height: 16, depthOrArrayLayers: 1 },
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
     });
 
     return commandEncoder.beginRenderPass({

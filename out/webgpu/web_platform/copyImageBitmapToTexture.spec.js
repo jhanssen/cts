@@ -103,11 +103,7 @@ got [${failedByteActualValues.join(', ')}]`;
   bytesPerPixel,
   expectedData)
   {
-    this.device.defaultQueue.copyImageBitmapToTexture(
-    imageBitmapCopyView,
-    dstTextureCopyView,
-    copySize);
-
+    this.device.queue.copyImageBitmapToTexture(imageBitmapCopyView, dstTextureCopyView, copySize);
 
     const imageBitmap = imageBitmapCopyView.imageBitmap;
     const dstTexture = dstTextureCopyView.texture;
@@ -123,9 +119,9 @@ got [${failedByteActualValues.join(', ')}]`;
     encoder.copyTextureToBuffer(
     { texture: dstTexture, mipLevel: 0, origin: { x: 0, y: 0, z: 0 } },
     { buffer: testBuffer, bytesPerRow },
-    { width: imageBitmap.width, height: imageBitmap.height, depth: 1 });
+    { width: imageBitmap.width, height: imageBitmap.height, depthOrArrayLayers: 1 });
 
-    this.device.defaultQueue.submit([encoder.finish()]);
+    this.device.queue.submit([encoder.finish()]);
 
     this.checkCopyImageBitmapResult(
     testBuffer,
@@ -179,10 +175,8 @@ got [${failedByteActualValues.join(', ')}]`;
 export const g = makeTestGroup(F);
 
 g.test('from_ImageData').
-params(
+cases(
 params().
-combine(poptions('width', [1, 2, 4, 15, 255, 256])).
-combine(poptions('height', [1, 2, 4, 15, 255, 256])).
 combine(poptions('alpha', ['none', 'premultiply'])).
 combine(poptions('orientation', ['none', 'flipY'])).
 combine(
@@ -198,6 +192,11 @@ poptions('dstColorFormat', [
 'rg16float']))).
 
 
+
+subcases(() =>
+params().
+combine(poptions('width', [1, 2, 4, 15, 255, 256])).
+combine(poptions('height', [1, 2, 4, 15, 255, 256]))).
 
 fn(async t => {
   const { width, height, alpha, orientation, dstColorFormat } = t.params;
@@ -232,7 +231,7 @@ fn(async t => {
     size: {
       width: imageBitmap.width,
       height: imageBitmap.height,
-      depth: 1 },
+      depthOrArrayLayers: 1 },
 
     format: dstColorFormat,
     usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC });
@@ -275,14 +274,14 @@ fn(async t => {
   t.doTestAndCheckResult(
   { imageBitmap, origin: { x: 0, y: 0 } },
   { texture: dst },
-  { width: imageBitmap.width, height: imageBitmap.height, depth: 1 },
+  { width: imageBitmap.width, height: imageBitmap.height, depthOrArrayLayers: 1 },
   dstBytesPerPixel,
   expectedPixels);
 
 });
 
 g.test('from_canvas').
-params(
+subcases(() =>
 params().
 combine(poptions('width', [1, 2, 4, 15, 255, 256])).
 combine(poptions('height', [1, 2, 4, 15, 255, 256]))).
@@ -330,7 +329,7 @@ fn(async t => {
     size: {
       width: imageBitmap.width,
       height: imageBitmap.height,
-      depth: 1 },
+      depthOrArrayLayers: 1 },
 
     format: 'rgba8unorm',
     usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.COPY_SRC });
@@ -347,7 +346,7 @@ fn(async t => {
   t.doTestAndCheckResult(
   { imageBitmap, origin: { x: 0, y: 0 } },
   { texture: dst },
-  { width: imageBitmap.width, height: imageBitmap.height, depth: 1 },
+  { width: imageBitmap.width, height: imageBitmap.height, depthOrArrayLayers: 1 },
   bytesPerPixel,
   expectedData);
 

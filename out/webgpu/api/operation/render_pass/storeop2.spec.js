@@ -16,14 +16,14 @@ params([
 
 fn(async t => {
   const renderTexture = t.device.createTexture({
-    size: { width: 1, height: 1, depth: 1 },
+    size: { width: 1, height: 1, depthOrArrayLayers: 1 },
     format: 'r8unorm',
-    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.OUTPUT_ATTACHMENT });
+    usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.RENDER_ATTACHMENT });
 
 
   // create render pipeline
   const renderPipeline = t.device.createRenderPipeline({
-    vertexStage: {
+    vertex: {
       module: t.device.createShaderModule({
         code: `
             [[builtin(position)]] var<out> Position : vec4<f32>;
@@ -41,7 +41,7 @@ fn(async t => {
 
       entryPoint: 'main' },
 
-    fragmentStage: {
+    fragment: {
       module: t.device.createShaderModule({
         code: `
             [[location(0)]] var<out> fragColor : vec4<f32>;
@@ -51,10 +51,10 @@ fn(async t => {
             }
             ` }),
 
-      entryPoint: 'main' },
+      entryPoint: 'main',
+      targets: [{ format: 'r8unorm' }] },
 
-    primitiveTopology: 'triangle-list',
-    colorStates: [{ format: 'r8unorm' }] });
+    primitive: { topology: 'triangle-list' } });
 
 
   // encode pass and submit
@@ -71,7 +71,7 @@ fn(async t => {
   pass.setPipeline(renderPipeline);
   pass.draw(3);
   pass.endPass();
-  t.device.defaultQueue.submit([encoder.finish()]);
+  t.device.queue.submit([encoder.finish()]);
 
   // expect the buffer to be clear
   t.expectSingleColor(renderTexture, 'r8unorm', {
