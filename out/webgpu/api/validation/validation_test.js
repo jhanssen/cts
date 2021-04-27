@@ -2,7 +2,11 @@
 * AUTO-GENERATED - DO NOT EDIT. Source: https://github.com/gpuweb/cts
 **/import { assert, unreachable } from '../../../common/framework/util/util.js';import { kMaxQueryCount } from '../../capability_info.js';import { GPUTest } from '../../gpu_test.js';
 
-export const kEncoderTypes = ['non-pass', 'compute pass', 'render pass', 'render bundle'];
+export const kRenderEncodeTypes = ['render pass', 'render bundle'];
+
+export const kProgrammableEncoderTypes = ['compute pass', ...kRenderEncodeTypes];
+
+export const kEncoderTypes = ['non-pass', ...kProgrammableEncoderTypes];
 
 
 
@@ -119,14 +123,6 @@ export class ValidationTest extends GPUTest {
     return this.createBufferWithState('invalid');
   }
 
-  getSampler() {
-    return this.device.createSampler();
-  }
-
-  getComparisonSampler() {
-    return this.device.createSampler({ compare: 'never' });
-  }
-
   getErrorSampler() {
     this.device.pushErrorScope('validation');
     const sampler = this.device.createSampler({ lodMinClamp: -1 });
@@ -189,10 +185,12 @@ export class ValidationTest extends GPUTest {
         return { buffer: this.getUniformBuffer() };
       case 'storageBuf':
         return { buffer: this.getStorageBuffer() };
-      case 'plainSamp':
-        return this.getSampler();
+      case 'filtSamp':
+        return this.device.createSampler({ minFilter: 'linear' });
+      case 'nonFiltSamp':
+        return this.device.createSampler();
       case 'compareSamp':
-        return this.getComparisonSampler();
+        return this.device.createSampler({ compare: 'never' });
       case 'sampledTex':
         return this.getSampledTexture(1).createView();
       case 'sampledTexMS':
@@ -206,13 +204,13 @@ export class ValidationTest extends GPUTest {
     return this.device.createRenderPipeline({
       vertex: {
         module: this.device.createShaderModule({
-          code: '[[stage(vertex)]] fn main() -> void {}' }),
+          code: '[[stage(vertex)]] fn main() {}' }),
 
         entryPoint: 'main' },
 
       fragment: {
         module: this.device.createShaderModule({
-          code: '[[stage(fragment)]] fn main() -> void {}' }),
+          code: '[[stage(fragment)]] fn main() {}' }),
 
         entryPoint: 'main',
         targets: [{ format: 'rgba8unorm' }] },
@@ -223,9 +221,9 @@ export class ValidationTest extends GPUTest {
 
   createNoOpComputePipeline() {
     return this.device.createComputePipeline({
-      computeStage: {
+      compute: {
         module: this.device.createShaderModule({
-          code: '[[stage(compute)]] fn main() -> void {}' }),
+          code: '[[stage(compute)]] fn main() {}' }),
 
         entryPoint: 'main' } });
 
@@ -235,7 +233,7 @@ export class ValidationTest extends GPUTest {
   createErrorComputePipeline() {
     this.device.pushErrorScope('validation');
     const pipeline = this.device.createComputePipeline({
-      computeStage: {
+      compute: {
         module: this.device.createShaderModule({
           code: '' }),
 
@@ -286,7 +284,7 @@ export class ValidationTest extends GPUTest {
         }
       case 'render pass':{
           const commandEncoder = this.device.createCommandEncoder();
-          const attachment = this.device.
+          const view = this.device.
           createTexture({
             format: colorFormat,
             size: { width: 16, height: 16, depthOrArrayLayers: 1 },
@@ -296,8 +294,9 @@ export class ValidationTest extends GPUTest {
           const encoder = commandEncoder.beginRenderPass({
             colorAttachments: [
             {
-              attachment,
-              loadValue: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 } }] });
+              view,
+              loadValue: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 },
+              storeOp: 'store' }] });
 
 
 

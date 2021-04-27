@@ -11,7 +11,6 @@ export const kAllWriteOps = ['render', 'render-via-bundle', 'compute', 'b2b-copy
 export class BufferSyncTest extends GPUTest {
   // Create a buffer, and initialize it to a specified value for all elements.
   async createBufferWithValue(initValue) {
-    const fence = this.queue.createFence();
     const buffer = this.device.createBuffer({
       mappedAtCreation: true,
       size: kSize,
@@ -20,14 +19,12 @@ export class BufferSyncTest extends GPUTest {
 
     new Uint32Array(buffer.getMappedRange()).fill(initValue);
     buffer.unmap();
-    this.queue.signal(fence, 1);
-    await fence.onCompletion(1);
+    await this.queue.onSubmittedWorkDone();
     return buffer;
   }
 
   // Create a texture, and initialize it to a specified value for all elements.
   async createTextureWithValue(initValue) {
-    const fence = this.queue.createFence();
     const data = new Uint32Array(kSize / 4).fill(initValue);
     const texture = this.device.createTexture({
       size: { width: kSize / 4, height: 1, depthOrArrayLayers: 1 },
@@ -42,8 +39,7 @@ export class BufferSyncTest extends GPUTest {
       { width: kSize / 4, height: 1, depthOrArrayLayers: 1 }
     );
 
-    this.queue.signal(fence, 1);
-    await fence.onCompletion(1);
+    await this.queue.onSubmittedWorkDone();
     return texture;
   }
 
@@ -61,15 +57,15 @@ export class BufferSyncTest extends GPUTest {
         [[offset(0)]] a : i32;
       };
 
-      [[group(0), binding(0)]] var<storage_buffer> data : Data;
-      [[stage(compute)]] fn main() -> void {
+      [[group(0), binding(0)]] var<storage> data : [[access(read_write)]] Data;
+      [[stage(compute)]] fn main() {
         data.a = ${value};
         return;
       }
     `;
 
     return this.device.createComputePipeline({
-      computeStage: {
+      compute: {
         module: this.device.createShaderModule({
           code: wgslCompute,
         }),
@@ -83,24 +79,20 @@ export class BufferSyncTest extends GPUTest {
   createStorageWriteRenderPipeline(value) {
     const wgslShaders = {
       vertex: `
-      [[builtin(position)]] var<out> Position : vec4<f32>;
-      [[stage(vertex)]] fn vert_main() -> void {
-        Position = vec4<f32>(0.5, 0.5, 0.0, 1.0);
-        return;
+      [[stage(vertex)]] fn vert_main() -> [[builtin(position)]] vec4<f32> {
+        return vec4<f32>(0.5, 0.5, 0.0, 1.0);
       }
     `,
 
       fragment: `
-      [[location(0)]] var<out> outColor : vec4<f32>;
       [[block]] struct Data {
         [[offset(0)]] a : i32;
       };
 
-      [[group(0), binding(0)]] var<storage_buffer> data : Data;
-      [[stage(fragment)]] fn frag_main() -> void {
+      [[group(0), binding(0)]] var<storage> data : [[access(read_write)]] Data;
+      [[stage(fragment)]] fn frag_main() -> [[location(0)]] vec4<f32> {
         data.a = ${value};
-        outColor = vec4<f32>(1.0, 0.0, 0.0, 1.0);
-        return;
+        return vec4<f32>(1.0, 0.0, 0.0, 1.0);
       }
     `,
     };
@@ -138,8 +130,9 @@ export class BufferSyncTest extends GPUTest {
     return encoder.beginRenderPass({
       colorAttachments: [
         {
-          attachment: view,
+          view,
           loadValue: { r: 0.0, g: 1.0, b: 0.0, a: 1.0 },
+          storeOp: 'store',
         },
       ],
     });

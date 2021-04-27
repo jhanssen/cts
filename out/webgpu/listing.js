@@ -24,7 +24,7 @@ export const listing = [
       "operation",
       "async_ordering"
     ],
-    "readme": "Test ordering of async resolutions between the following promises (where there are constraints on the ordering).\nSpec issue: https://github.com/gpuweb/gpuweb/issues/962\n\nTODO: plan and implement\n- createReadyPipeline() (not sure if this actually has any ordering constraints)\n- cmdbuf.executionTime\n- device.popErrorScope()\n- device.lost\n- queue.onSubmittedWorkDone()\n- buffer.mapAsync()\n- shadermodule.compilationInfo()"
+    "readme": "Test ordering of async resolutions between promises returned by the following calls (and possibly\nbetween multiple of the same call), where there are constraints on the ordering.\nSpec issue: https://github.com/gpuweb/gpuweb/issues/962\n\nTODO: plan and implement\n- createReadyPipeline() (not sure if this actually has any ordering constraints)\n- cmdbuf.executionTime\n- device.popErrorScope()\n- device.lost\n- queue.onSubmittedWorkDone()\n- buffer.mapAsync()\n- shadermodule.compilationInfo()"
   },
   {
     "file": [
@@ -114,7 +114,7 @@ export const listing = [
       "command_buffer",
       "queries"
     ],
-    "readme": "TODO: test the behavior of creating/using/resolving queries.\n- occlusion\n- pipeline statistics\n- timestamp\n- nested (e.g. timestamp or PS query inside occlusion query), if any such cases are valid. Try\n  writing to the same query set (at same or different indices), if valid. Check results make sense."
+    "readme": "TODO: test the behavior of creating/using/resolving queries.\n- occlusion\n- pipeline statistics\n- timestamp\n- nested (e.g. timestamp or PS query inside occlusion query), if any such cases are valid. Try\n  writing to the same query set (at same or different indices), if valid. Check results make sense.\n- start a query (all types) with no draw calls"
   },
   {
     "file": [
@@ -165,13 +165,6 @@ export const listing = [
       "error_scope"
     ],
     "readme": "TODO: plan and implement\n- test very deeply nested error scopes, make sure errors go to the right place, e.g.\n    - validation, ..., validation, out-of-memory\n    - out-of-memory, validation, ..., validation\n    - out-of-memory, ..., out-of-memory, validation\n    - validation, out-of-memory, ..., out-of-memory\n- use error scopes on two different threads and make sure errors go to the right place\n- unhandled errors always go to the \"original\" device object\n    - test they go nowhere if the original was dropped (attemptGarbageCollection to make sure)"
-  },
-  {
-    "file": [
-      "api",
-      "operation",
-      "fences"
-    ]
   },
   {
     "file": [
@@ -228,7 +221,7 @@ export const listing = [
     "file": [
       "api",
       "operation",
-      "onuncapturederror"
+      "onSubmittedWorkDone"
     ]
   },
   {
@@ -332,6 +325,14 @@ export const listing = [
       "api",
       "operation",
       "rendering",
+      "depth"
+    ]
+  },
+  {
+    "file": [
+      "api",
+      "operation",
+      "rendering",
       "draw"
     ]
   },
@@ -406,6 +407,13 @@ export const listing = [
       "threading"
     ],
     "readme": "Tests for behavior with multiple threads (main thread + workers).\n\nTODO: plan and implement\n- Try postMessage'ing an object of every type (to same or different thread)\n    - {main -> main, main -> worker, worker -> main, worker1 -> worker1, worker1 -> worker2}\n    - through {global postMessage, MessageChannel}\n    - {in, not in} transferrable object list, when valid\n- Short tight loop doing many of an action from two threads at the same time\n    - e.g. {create {buffer, texture, shader, pipeline}}"
+  },
+  {
+    "file": [
+      "api",
+      "operation",
+      "uncapturederror"
+    ]
   },
   {
     "file": [
@@ -491,7 +499,7 @@ export const listing = [
       "capability_checks",
       "features"
     ],
-    "readme": "Test every method or option that shouldn't be valid without a feature enabled.\n\n- x= that feature {enabled, disabled}\n\nOne file for each feature name.\n\nTODO: implement"
+    "readme": "Test every method or option that shouldn't be allowed without a feature enabled.\nIf the feature is not enabled, any use of an enum value added by a feature must be an\n*exception*, per <https://github.com/gpuweb/gpuweb/blob/main/design/ErrorConventions.md>.\n\n- x= that feature {enabled, disabled}\n\nGenerally one file for each feature name, but some may be grouped (e.g. one file for all optional\nquery types, one file for all optional texture formats).\n\nTODO: implement"
   },
   {
     "file": [
@@ -499,7 +507,25 @@ export const listing = [
       "validation",
       "capability_checks",
       "features",
-      "queries"
+      "depth_clamping"
+    ]
+  },
+  {
+    "file": [
+      "api",
+      "validation",
+      "capability_checks",
+      "features",
+      "query_types"
+    ]
+  },
+  {
+    "file": [
+      "api",
+      "validation",
+      "capability_checks",
+      "features",
+      "texture_formats"
     ]
   },
   {
@@ -718,15 +744,6 @@ export const listing = [
       "validation",
       "encoding",
       "queries",
-      "occlusion"
-    ]
-  },
-  {
-    "file": [
-      "api",
-      "validation",
-      "encoding",
-      "queries",
       "pipeline_statistics"
     ]
   },
@@ -744,15 +761,6 @@ export const listing = [
       "api",
       "validation",
       "encoding",
-      "queries",
-      "timestamp"
-    ]
-  },
-  {
-    "file": [
-      "api",
-      "validation",
-      "encoding",
       "render_bundle"
     ]
   },
@@ -761,13 +769,6 @@ export const listing = [
       "api",
       "validation",
       "error_scope"
-    ]
-  },
-  {
-    "file": [
-      "api",
-      "validation",
-      "fences"
     ]
   },
   {
@@ -846,7 +847,8 @@ export const listing = [
       "api",
       "validation",
       "queue",
-      "copyImageBitmapToTexture"
+      "copyToTexture",
+      "ImageBitmap"
     ]
   },
   {
@@ -1074,6 +1076,13 @@ export const listing = [
   {
     "file": [
       "web_platform",
+      "canvas"
+    ],
+    "readme": "Tests for WebGPU <canvas> and OffscreenCanvas presentation."
+  },
+  {
+    "file": [
+      "web_platform",
       "canvas",
       "configureSwapChain"
     ]
@@ -1102,7 +1111,50 @@ export const listing = [
   {
     "file": [
       "web_platform",
-      "copyImageBitmapToTexture"
+      "copyToTexture",
+      "ImageBitmap"
+    ]
+  },
+  {
+    "file": [
+      "web_platform",
+      "copyToTexture"
+    ],
+    "readme": "Tests for copyToTexture from all possible sources (video, canvas, ImageBitmap, ...)"
+  },
+  {
+    "file": [
+      "web_platform",
+      "copyToTexture",
+      "canvas"
+    ]
+  },
+  {
+    "file": [
+      "web_platform",
+      "copyToTexture",
+      "video"
+    ]
+  },
+  {
+    "file": [
+      "web_platform",
+      "external_texture"
+    ],
+    "readme": "Tests for external textures from video/canvas."
+  },
+  {
+    "file": [
+      "web_platform",
+      "external_texture",
+      "canvas"
+    ]
+  },
+  {
+    "file": [
+      "web_platform",
+      "external_texture",
+      "video"
     ]
   },
   {
