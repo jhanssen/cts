@@ -126,7 +126,20 @@ struct Inputs {
 `,
     });
 
+    const bgl = t.device.createBindGroupLayout({
+        entries: [
+            {
+                binding: 0,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: { type: "storage" }
+            }
+        ]
+    });
+    const rpl = t.device.createPipelineLayout({
+        bindGroupLayouts: [ bgl ]
+    });
     const pipeline = t.device.createRenderPipeline({
+      layout: rpl,
       vertex: {
         module: vertexModule,
         entryPoint: 'vert_main',
@@ -476,7 +489,20 @@ g.test('vertex_attributes,basic')
         break;
     }
 
+    const bgl = t.device.createBindGroupLayout({
+        entries: [
+            {
+                binding: 0,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: { type: "storage" }
+            }
+        ]
+    });
+    const rpl = t.device.createPipelineLayout({
+        bindGroupLayouts: [ bgl ]
+    });
     const pipeline = t.device.createRenderPipeline({
+      layout: rpl,
       vertex: {
         module: t.device.createShaderModule({
           code: `
