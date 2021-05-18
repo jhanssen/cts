@@ -213,9 +213,9 @@ export class GPUTest extends Fixture {
     );
 
     this.eventualAsyncExpectation(async niceStack => {
-      const constructor = expected.constructor as TypedArrayBufferViewConstructor;
+      const constructor2 = expected.constructor as TypedArrayBufferViewConstructor;
       await dst.mapAsync(GPUMapMode.READ);
-      const actual = new constructor(dst.getMappedRange());
+      const actual = new constructor2(dst.getMappedRange());
       const check = this.checkBuffer(actual.subarray(begin, end), expected);
       if (check !== undefined) {
         niceStack.message = check;
@@ -244,11 +244,11 @@ export class GPUTest extends Fixture {
     );
 
     this.eventualAsyncExpectation(async niceStack => {
-      const constructor = expected[0].constructor as TypedArrayBufferViewConstructor;
+      const constructor2 = expected[0].constructor as TypedArrayBufferViewConstructor;
       await dst.mapAsync(GPUMapMode.READ);
-      const actual = new constructor(dst.getMappedRange());
+      const actual = new constructor2(dst.getMappedRange());
 
-      const bounds = [new constructor(expected[0].length), new constructor(expected[1].length)];
+      const bounds = [new constructor2(expected[0].length), new constructor2(expected[1].length)];
       for (let i = 0, len = expected[0].length; i < len; i++) {
         bounds[0][i] = Math.min(expected[0][i], expected[1][i]);
         bounds[1][i] = Math.max(expected[0][i], expected[1][i]);
@@ -328,9 +328,9 @@ export class GPUTest extends Fixture {
     );
 
     this.eventualAsyncExpectation(async niceStack => {
-      const constructor = expected1.constructor as TypedArrayBufferViewConstructor;
+      const constructor2 = expected1.constructor as TypedArrayBufferViewConstructor;
       await dst.mapAsync(GPUMapMode.READ);
-      const actual = new constructor(dst.getMappedRange());
+      const actual = new constructor2(dst.getMappedRange());
       const check1 = this.checkBuffer(actual.subarray(begin, end), expected1);
       const check2 = this.checkBuffer(actual.subarray(begin, end), expected2);
       if (check1 !== undefined && check2 !== undefined) {
