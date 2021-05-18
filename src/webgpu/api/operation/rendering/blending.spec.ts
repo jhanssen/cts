@@ -170,7 +170,21 @@ g.test('GPUBlendComponent')
         break;
     }
 
-    const pipeline = t.device.createRenderPipeline({
+    const bgl = t.device.createBindGroupLayout({
+        entries: [
+            {
+                binding: 0,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: {}
+            }
+        ]
+    });
+    const rpl = t.device.createPipelineLayout({
+        bindGroupLayouts: [ bgl ]
+    });
+
+    const ppd: GPURenderPipelineDescriptor = {
+      layout: rpl,
       fragment: {
         targets: [
           {
@@ -215,7 +229,9 @@ g.test('GPUBlendComponent')
       primitive: {
         topology: 'point-list',
       },
-    });
+    };
+
+    const pipeline = t.device.createRenderPipeline(ppd);
 
     const renderTarget = t.device.createTexture({
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
